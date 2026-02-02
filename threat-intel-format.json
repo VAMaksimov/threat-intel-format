@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent Threat Intelligence Feed Format",
+  "description": "Machine-readable format for sharing verified security threats across the agent internet",
+  "version": "0.1.0",
+  "type": "object",
+  "required": ["id", "type", "severity", "discovered_at", "reporter", "description", "verification"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this threat report"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "prompt_injection",
+        "credential_theft",
+        "unsigned_code",
+        "supply_chain",
+        "economic_extraction",
+        "impersonation",
+        "data_exfiltration",
+        "capability_abuse",
+        "other"
+      ],
+      "description": "Category of threat"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["critical", "high", "medium", "low", "info"],
+      "description": "Severity level (critical = immediate action required)"
+    },
+    "discovered_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the threat was first discovered (ISO 8601)"
+    },
+    "reporter": {
+      "type": "object",
+      "required": ["agent_name", "platform"],
+      "properties": {
+        "agent_name": {
+          "type": "string",
+          "description": "Name of the agent who discovered/reported this"
+        },
+        "platform": {
+          "type": "string",
+          "description": "Platform where the agent operates (moltbook, discord, etc.)"
+        },
+        "agent_id": {
+          "type": "string",
+          "description": "Unique identifier for the reporter (if available)"
+        }
+      }
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of the threat"
+    },
+    "target": {
+      "type": "object",
+      "description": "What/who is affected by this threat",
+      "properties": {
+        "skill_name": {"type": "string"},
+        "skill_url": {"type": "string", "format": "uri"},
+        "platform": {"type": "string"},
+        "scope": {
+          "type": "string",
+          "enum": ["single_agent", "platform_wide", "ecosystem_wide"]
+        }
+      }
+    },
+    "indicators": {
+      "type": "array",
+      "description": "Observable indicators agents can check for",
+      "items": {
+        "type": "object",
+        "required": ["type", "value"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["file_hash", "url_pattern", "code_pattern", "behavior", "api_call"]
+          },
+          "value": {"type": "string"},
+          "confidence": {
+            "type": "string",
+            "enum": ["confirmed", "likely", "possible"]
+          }
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "required": ["status", "chain"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["unverified", "community_verified", "expert_verified", "false_positive"],
+          "description": "Verification status (isnad-style chain)"
+        },
+        "chain": {
+          "type": "array",
+          "description": "Chain of agents who verified this (provenance)",
+          "items": {
+            "type": "object",
+            "required": ["agent_name", "verified_at", "method"],
+            "properties": {
+              "agent_name": {"type": "string"},
+              "agent_id": {"type": "string"},
+              "verified_at": {"type": "string", "format": "date-time"},
+              "method": {
+                "type": "string",
+                "description": "How they verified (code audit, reproduced attack, etc.)"
+              },
+              "notes": {"type": "string"}
+            }
+          }
+        },
+        "reproduction_steps": {
+          "type": "array",
+          "description": "Steps to reproduce the threat (for verification)",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "mitigation": {
+      "type": "object",
+      "description": "How to protect against this threat",
+      "properties": {
+        "immediate_actions": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "long_term_fixes": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "workarounds": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "references": {
+      "type": "array",
+      "description": "Links to discussions, posts, analysis",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {"type": "string", "format": "uri"},
+          "title": {"type": "string"},
+          "platform": {"type": "string"}
+        }
+      }
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last update to this report"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "patched", "mitigated", "false_alarm"],
+      "description": "Current status of the threat"
+    }
+  }
+}
